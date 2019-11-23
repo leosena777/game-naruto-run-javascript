@@ -38,6 +38,7 @@ var bloco = {
     velocidade: 0,
     forcaDoPulo:23.5,
     qntPulos:0,
+    score:0,
     atualizar: function(){
         this.velocidade+= this.gravidade;
         this.y += this.velocidade;
@@ -57,6 +58,10 @@ var bloco = {
     desenhar: function(){
         ctx.fillStyle = this.cor;
         ctx.fillRect(this.x,this.y,this.largura,this.altura);
+    },
+    reset: function(){
+        bloco.y = 0;
+        bloco.velocidade = 0;
     }
 }
 
@@ -64,16 +69,16 @@ obstaculos = {
     _obs: [],
     cores:["#ffbc1c","#ff85e1","#52a7ff"],
     tempoInsere: 0,
-    auxTempoInsere:40,
+    auxTempoInsere:60,
     insere:function(){
         this._obs.push({
             x:LARGURA,
-            largura:30 + Math.floor(20 * Math.random()),
+            largura: 60,
             altura: 30 + Math.floor(120*Math.random()),
             cor: this.cores[Math.floor(this.cores.length * Math.random())]
         })
 
-        this.tempoInsere = 40 + Math.floor(20*Math.random());
+        this.tempoInsere = this.auxTempoInsere + Math.floor(20*Math.random());
     },
     atualizar:function(){
         if(this.tempoInsere == 0){
@@ -91,6 +96,8 @@ obstaculos = {
                 && bloco.y + bloco.altura >= chao.y - obs.altura
             ){
                 estadoAtual = estados.perdeu;
+            }else if( obs.x == 0){
+                bloco.score++;                
             }else if(obs.x <= -obs.largura ){
                 this._obs.splice(i,1);
                 tam--;
@@ -139,8 +146,8 @@ function clique(){
         estadoAtual = estados.jogando;
     }else if(estadoAtual == estados.perdeu && bloco.y >= 2* ALTURA){
         estadoAtual = estados.jogar;
-        bloco.y = 0;
-        bloco.velocidade = 0;
+        bloco.reset();
+        obstaculos.limpar();
     }
 }
 
@@ -158,8 +165,6 @@ function atualizar(){
     bloco.atualizar();
     if(estadoAtual == estados.jogando){
         obstaculos.atualizar();
-    }else if(estadoAtual == estados.perdeu){
-        obstaculos.limpar();
     }
 }
 
@@ -167,12 +172,31 @@ function desenhar(){
     ctx.fillStyle = "#80eaff";
     ctx.fillRect(0,0,LARGURA,ALTURA);
 
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "50px Arial";
+    ctx.fillText(bloco.score, 30, 68);
+
     if(estadoAtual == estados.jogar){
         ctx.fillStyle = "#0f0";
         ctx.fillRect(LARGURA/2 -50, ALTURA/2 -50, 100,100);
     }else if(estadoAtual == estados.perdeu){
         ctx.fillStyle = "#f00";
         ctx.fillRect(LARGURA/2 -50, ALTURA/2 -50, 100,100);
+
+        ctx.save();
+        ctx.translate(LARGURA/2,ALTURA/2);
+        ctx.fillStyle = "#fff";
+
+        if(bloco.score < 10){
+            ctx.fillText(bloco.score,-13, 19);
+        }else if(bloco.score >=100 && bloco.score < 100){
+            ctx.fillText(bloco.score,-26, 19);
+        }else{
+            ctx.fillText(bloco.score,-39, 19);
+        }
+        
+        ctx.restore();
+
     }else if(estadoAtual == estados.jogando){
         obstaculos.desenha();
      
